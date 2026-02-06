@@ -8,3 +8,5 @@ frontend/dist
 
 # backend
 backend/node_modules
+
+/generated/prisma
