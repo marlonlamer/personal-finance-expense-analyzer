@@ -40,7 +40,7 @@ function App() {
   };
 
     const totalExpenses = expenses.reduce(
-    (sum, expense) => sum + expense.amount,
+    (sum, expense) => sum + Number(expense.amount),
     0
   );
 
@@ -62,11 +62,24 @@ function App() {
           value={form.amount}
           onChange={e => setForm({ ...form, amount: e.target.value })}
         />
-        <input
-          placeholder="Category"
+        <select
           value={form.category}
-          onChange={e => setForm({ ...form, category: e.target.value })}
-        />
+          onChange={(e) =>
+            setForm({ ...form, category: e.target.value })
+          }
+          required
+        >
+          <option value="">Select category</option>
+          <option value="Food">Food</option>
+          <option value="Transportation">Transportation</option>
+          <option value="Rent/Housing">Rent / Housing</option>
+          <option value="Utilities">Utilities</option>
+          <option value="Health">Health</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Education">Education</option>
+          <option value="Other">Other</option>
+        </select>
+
         <button>Add Expense</button>
       </form>
 
