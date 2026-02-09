@@ -16,7 +16,13 @@ const createExpense = async ({ title, amount, category }) => {
   });
 };
 
+const deleteExpense = async (id) => {
+  return prisma.expense.delete({
+    where: { id: Number(id) }
+  });
+};
 module.exports = {
   getAllExpenses,
   createExpense
+  ,deleteExpense
 };

@@ -28,7 +28,19 @@ const createExpense = async (req, res) => {
   }
 };
 
+const deleteExpense = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await expenseService.deleteExpense(id);
+    res.json({ message: "Expense deleted" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete expense" });
+  }
+};
+
 module.exports = {
   getExpenses,
-  createExpense
+  createExpense,
+  deleteExpense
 };

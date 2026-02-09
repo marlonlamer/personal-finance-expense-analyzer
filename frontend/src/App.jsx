@@ -31,9 +31,24 @@ function App() {
     fetchExpenses();
   };
 
+    const deleteExpense = async (id) => {
+    await fetch(`http://localhost:5000/expenses/${id}`, {
+      method: "DELETE"
+    });
+
+    fetchExpenses();
+  };
+
+    const totalExpenses = expenses.reduce(
+    (sum, expense) => sum + expense.amount,
+    0
+  );
+
+
   return (
     <div style={{ padding: "2rem" }}>
       <h1>💰 Expense Analyzer</h1>
+      <p>Total Expenses: ₱{totalExpenses.toFixed(2)}</p>
 
       <form onSubmit={handleSubmit}>
         <input
@@ -59,6 +74,12 @@ function App() {
         {expenses.map(expense => (
           <li key={expense.id}>
             {expense.title} — ₱{expense.amount} ({expense.category})
+            <button
+              style={{ marginLeft: "10px" }}
+              onClick={() => deleteExpense(expense.id)}
+            >
+              ❌
+            </button>
           </li>
         ))}
       </ul>
