@@ -1,35 +1,70 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [expenses, setExpenses] = useState([]);
+  const [form, setForm] = useState({
+    title: "",
+    amount: "",
+    category: ""
+  });
+
+  const fetchExpenses = () => {
+    fetch("http://localhost:5000/expenses")
+      .then(res => res.json())
+      .then(data => setExpenses(data));
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    await fetch("http://localhost:5000/expenses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form)
+    });
+
+    setForm({ title: "", amount: "", category: "" });
+    fetchExpenses();
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div style={{ padding: "2rem" }}>
+      <h1>💰 Expense Analyzer</h1>
+
+      <form onSubmit={handleSubmit}>
+        <input
+          placeholder="Title"
+          value={form.title}
+          onChange={e => setForm({ ...form, title: e.target.value })}
+        />
+        <input
+          placeholder="Amount"
+          type="number"
+          value={form.amount}
+          onChange={e => setForm({ ...form, amount: e.target.value })}
+        />
+        <input
+          placeholder="Category"
+          value={form.category}
+          onChange={e => setForm({ ...form, category: e.target.value })}
+        />
+        <button>Add Expense</button>
+      </form>
+
+      <ul>
+        {expenses.map(expense => (
+          <li key={expense.id}>
+            {expense.title} — ₱{expense.amount} ({expense.category})
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default App
+export default App;
+
