@@ -6,13 +6,19 @@ const getAllExpenses = async () => {
   });
 };
 
-const createExpense = async ({ title, amount, category }) => {
+const createExpense = async ({ title, amount, category, createdAt }) => {
+  const data = {
+    title,
+    amount: Number(amount),
+    category
+  };
+
+  if (createdAt) {
+    data.createdAt = new Date(createdAt);
+  }
+
   return prisma.expense.create({
-    data: {
-      title,
-      amount: Number(amount),
-      category
-    }
+    data
   });
 };
 

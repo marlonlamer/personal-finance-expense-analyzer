@@ -10,7 +10,7 @@ const getExpenses = async (req, res) => {
 };
 
 const createExpense = async (req, res) => {
-  const { title, amount, category } = req.body;
+  const { title, amount, category, createdAt } = req.body;
 
   if (!title || !amount || !category) {
     return res.status(400).json({ error: "All fields are required" });
@@ -20,7 +20,8 @@ const createExpense = async (req, res) => {
     const expense = await expenseService.createExpense({
       title,
       amount,
-      category
+      category,
+      createdAt
     });
     res.status(201).json(expense);
   } catch (error) {

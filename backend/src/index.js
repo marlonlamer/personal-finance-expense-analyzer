@@ -24,24 +24,37 @@ app.get("/expenses", async (req, res) => {
 });
 
 app.post("/expenses", async (req, res) => {
-  const { title, amount, category } = req.body;
+  const { title, amount, category, createdAt } = req.body;
 
   if (!title || !amount || !category) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    const expense = await prisma.expense.create({
-      data: {
-        title,
-        amount: Number(amount),
-        category
-      }
-    });
+    const data = {
+      title,
+      amount: Number(amount),
+      category
+    };
+
+    if (createdAt) data.createdAt = new Date(createdAt);
+
+    const expense = await prisma.expense.create({ data });
 
     res.status(201).json(expense);
   } catch (error) {
     res.status(500).json({ error: "Failed to create expense" });
+  }
+});
+
+app.delete("/expenses/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await prisma.expense.delete({ where: { id: Number(id) } });
+    res.json({ message: "Expense deleted" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete expense" });
   }
 });
 

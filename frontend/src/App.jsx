@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 function App() {
@@ -9,10 +10,12 @@ function App() {
       return [];
     }
   });
+
   const [form, setForm] = useState({
     title: "",
     amount: "",
-    category: ""
+    category: "",
+    date: new Date().toISOString().slice(0, 10)
   });
 
   const fetchExpenses = async () => {
@@ -22,7 +25,6 @@ function App() {
       const data = await res.json();
       setExpenses(data);
     } catch (e) {
-      // If network fails, keep local data
       console.warn("Failed to fetch expenses, using localStorage", e);
     }
   };
@@ -31,7 +33,6 @@ function App() {
     fetchExpenses();
   }, []);
 
-  // persist to localStorage when expenses change
   useEffect(() => {
     try {
       localStorage.setItem("expenses", JSON.stringify(expenses));
@@ -43,37 +44,41 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        title: form.title,
+        amount: form.amount,
+        category: form.category,
+        createdAt: form.date
+      };
+
       const res = await fetch("http://localhost:5000/expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
 
       if (res.ok) {
         const newExpense = await res.json();
         setExpenses(prev => [newExpense, ...prev]);
       } else {
-        // on server error, optionally keep local optimistic item
         console.warn("Failed to add expense on server");
       }
     } catch (e) {
       console.warn("Create expense failed, adding locally", e);
-      // optimistic local add with a temporary id
       const temp = {
         id: Date.now(),
         title: form.title,
         amount: Number(form.amount),
         category: form.category,
-        createdAt: new Date().toISOString()
+        createdAt: form.date || new Date().toISOString()
       };
       setExpenses(prev => [temp, ...prev]);
     } finally {
-      setForm({ title: "", amount: "", category: "" });
+      setForm({ title: "", amount: "", category: "", date: new Date().toISOString().slice(0, 10) });
     }
   };
 
-    const deleteExpense = async (id) => {
-    // optimistic remove
+  const deleteExpense = async (id) => {
     setExpenses(prev => prev.filter(e => e.id !== id));
 
     try {
@@ -82,7 +87,6 @@ function App() {
       });
 
       if (!res.ok) {
-        // rollback by refetching from server
         console.warn("Server failed to delete, refetching");
         fetchExpenses();
       }
@@ -91,21 +95,17 @@ function App() {
     }
   };
 
-    const totalExpenses = expenses.reduce(
-    (sum, expense) => sum + Number(expense.amount),
-    0
-  );
+  const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
-    const categorySummary = Object.values(
-      expenses.reduce((acc, expense) => {
-        const cat = expense.category || "Uncategorized";
-        const amt = Number(expense.amount) || 0;
-        if (!acc[cat]) acc[cat] = { category: cat, amount: 0 };
-        acc[cat].amount += amt;
-        return acc;
-      }, {})
-    ).sort((a, b) => b.amount - a.amount);
-
+  const categorySummary = Object.values(
+    expenses.reduce((acc, expense) => {
+      const cat = expense.category || "Uncategorized";
+      const amt = Number(expense.amount) || 0;
+      if (!acc[cat]) acc[cat] = { category: cat, amount: 0 };
+      acc[cat].amount += amt;
+      return acc;
+    }, {})
+  ).sort((a, b) => b.amount - a.amount);
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -135,11 +135,15 @@ function App() {
           value={form.amount}
           onChange={e => setForm({ ...form, amount: e.target.value })}
         />
+        <input
+          placeholder="Date"
+          type="date"
+          value={form.date}
+          onChange={e => setForm({ ...form, date: e.target.value })}
+        />
         <select
           value={form.category}
-          onChange={(e) =>
-            setForm({ ...form, category: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, category: e.target.value })}
           required
         >
           <option value="">Select category</option>
@@ -153,19 +157,14 @@ function App() {
           <option value="Other">Other</option>
         </select>
 
-        <button>Add Expense</button>
+        <button type="submit">Add Expense</button>
       </form>
 
       <ul>
         {expenses.map(expense => (
           <li key={expense.id}>
-            {expense.title} — ₱{expense.amount} ({expense.category})
-            <button
-              style={{ marginLeft: "10px" }}
-              onClick={() => deleteExpense(expense.id)}
-            >
-              ❌
-            </button>
+            {expense.title} — ₱{expense.amount} ({expense.category}) — {new Date(expense.createdAt).toLocaleDateString()}
+            <button style={{ marginLeft: "10px" }} onClick={() => deleteExpense(expense.id)}>❌</button>
           </li>
         ))}
       </ul>
