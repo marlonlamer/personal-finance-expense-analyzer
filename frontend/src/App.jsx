@@ -17,6 +17,7 @@ function App() {
     category: "",
     date: new Date().toISOString().slice(0, 10)
   });
+  const [dateFilter, setDateFilter] = useState("all");
 
   const fetchExpenses = async () => {
     try {
@@ -95,10 +96,43 @@ function App() {
     }
   };
 
-  const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+  const parseDate = (d) => (d ? new Date(d) : null);
+
+  const isSameDay = (a, b) => {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  };
+
+  const isWithinWeek = (date) => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(now.getDate() - 6); // last 7 days including today
+    start.setHours(0,0,0,0);
+    const d = new Date(date);
+    return d >= start && d <= now;
+  };
+
+  const isWithinMonth = (date) => {
+    const now = new Date();
+    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+  };
+
+  const matchesFilter = (expense) => {
+    if (!expense || !expense.createdAt) return dateFilter === "all";
+    const d = parseDate(expense.createdAt);
+    if (!d || isNaN(d)) return false;
+    if (dateFilter === "all") return true;
+    if (dateFilter === "today") return isSameDay(d, new Date());
+    if (dateFilter === "week") return isWithinWeek(d);
+    if (dateFilter === "month") return isWithinMonth(d);
+    return true;
+  };
+
+  const filteredExpenses = expenses.filter(matchesFilter);
+
+  const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
   const categorySummary = Object.values(
-    expenses.reduce((acc, expense) => {
+    filteredExpenses.reduce((acc, expense) => {
       const cat = expense.category || "Uncategorized";
       const amt = Number(expense.amount) || 0;
       if (!acc[cat]) acc[cat] = { category: cat, amount: 0 };
@@ -111,6 +145,16 @@ function App() {
     <div style={{ padding: "2rem" }}>
       <h1>💰 Expense Analyzer</h1>
       <p>Total Expenses: ₱{totalExpenses.toFixed(2)}</p>
+
+      <div style={{ marginTop: "0.5rem" }}>
+        <label style={{ marginRight: 8 }}>Date filter:</label>
+        <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
+          <option value="all">All</option>
+          <option value="today">Today</option>
+          <option value="week">Last 7 days</option>
+          <option value="month">This month</option>
+        </select>
+      </div>
 
       <div style={{ marginTop: "1rem" }}>
         <h2>By Category</h2>
@@ -160,14 +204,17 @@ function App() {
         <button type="submit">Add Expense</button>
       </form>
 
-      <ul>
-        {expenses.map(expense => (
-          <li key={expense.id}>
-            {expense.title} — ₱{expense.amount} ({expense.category}) — {new Date(expense.createdAt).toLocaleDateString()}
-            <button style={{ marginLeft: "10px" }} onClick={() => deleteExpense(expense.id)}>❌</button>
-          </li>
-        ))}
-      </ul>
+      <div style={{ marginTop: "1rem" }}>
+        <p style={{ marginBottom: 8 }}>Showing {filteredExpenses.length} of {expenses.length} expenses</p>
+        <ul>
+          {filteredExpenses.map(expense => (
+            <li key={expense.id}>
+              {expense.title} — ₱{expense.amount} ({expense.category}) — {new Date(expense.createdAt).toLocaleDateString()}
+              <button style={{ marginLeft: "10px" }} onClick={() => deleteExpense(expense.id)}>❌</button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
