@@ -96,11 +96,32 @@ function App() {
     0
   );
 
+    const categorySummary = Object.values(
+      expenses.reduce((acc, expense) => {
+        const cat = expense.category || "Uncategorized";
+        const amt = Number(expense.amount) || 0;
+        if (!acc[cat]) acc[cat] = { category: cat, amount: 0 };
+        acc[cat].amount += amt;
+        return acc;
+      }, {})
+    ).sort((a, b) => b.amount - a.amount);
+
 
   return (
     <div style={{ padding: "2rem" }}>
       <h1>💰 Expense Analyzer</h1>
       <p>Total Expenses: ₱{totalExpenses.toFixed(2)}</p>
+
+      <div style={{ marginTop: "1rem" }}>
+        <h2>By Category</h2>
+        <ul>
+          {categorySummary.map((c) => (
+            <li key={c.category}>
+              {c.category}: ₱{c.amount.toFixed(2)}
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <input
