@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 function App() {
   const [expenses, setExpenses] = useState(() => {
@@ -141,6 +142,9 @@ function App() {
     }, {})
   ).sort((a, b) => b.amount - a.amount);
 
+  const pieData = categorySummary.map((c) => ({ name: c.category, value: Number(c.amount) }));
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28EFF", "#FF6B6B", "#2ED573", "#FFA3A3"];
+
   return (
     <div style={{ padding: "2rem" }}>
       <h1>💰 Expense Analyzer</h1>
@@ -158,6 +162,44 @@ function App() {
 
       <div style={{ marginTop: "1rem" }}>
         <h2>By Category</h2>
+        {pieData.length > 0 ? (
+          <div style={{ width: "100%", height: 300 }}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={80}
+                  labelLine={false}
+                  label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+                    const RAD = Math.PI / 180;
+                    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                    const x = cx + radius * Math.cos(-midAngle * RAD);
+                    const y = cy + radius * Math.sin(-midAngle * RAD);
+                    return (
+                      <text x={x} y={y} fill="#ffffff" textAnchor="middle" dominantBaseline="central" style={{ fontSize: 12, fontWeight: 600 }}>
+                        {`${(percent * 100).toFixed(0)}%`}
+                      </text>
+                    );
+                  }}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `₱${Number(value).toFixed(2)}`} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p>No expenses to display.</p>
+        )}
+
         <ul>
           {categorySummary.map((c) => (
             <li key={c.category}>
