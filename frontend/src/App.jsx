@@ -1,6 +1,18 @@
 
 import { useEffect, useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid
+} from "recharts";
 
 function App() {
   const [expenses, setExpenses] = useState(() => {
@@ -145,6 +157,23 @@ function App() {
   const pieData = categorySummary.map((c) => ({ name: c.category, value: Number(c.amount) }));
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28EFF", "#FF6B6B", "#2ED573", "#FFA3A3"];
 
+  const monthlyMap = filteredExpenses.reduce((acc, expense) => {
+    const d = expense.createdAt ? new Date(expense.createdAt) : null;
+    if (!d || isNaN(d)) return acc;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    acc[key] = (acc[key] || 0) + Number(expense.amount || 0);
+    return acc;
+  }, {});
+
+  const lineData = Object.keys(monthlyMap)
+    .sort()
+    .map((k) => {
+      const [y, m] = k.split("-");
+      const date = new Date(Number(y), Number(m) - 1, 1);
+      const label = new Intl.DateTimeFormat("en", { month: "short", year: "numeric" }).format(date);
+      return { month: label, monthKey: k, total: Number(monthlyMap[k]) };
+    });
+
   return (
     <div style={{ padding: "2rem" }}>
       <h1>💰 Expense Analyzer</h1>
@@ -161,7 +190,25 @@ function App() {
       </div>
 
       <div style={{ marginTop: "1rem" }}>
-        <h2>By Category</h2>
+        <h2>Total Expenses Per Month</h2>
+        {lineData.length > 0 ? (
+          <div style={{ width: "100%", height: 300 }}>
+            <ResponsiveContainer>
+              <LineChart data={lineData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis tickFormatter={(v) => `₱${v.toFixed(0)}`} />
+                <Tooltip formatter={(value) => `₱${Number(value).toFixed(2)}`} />
+                <Legend />
+                <Line type="monotone" dataKey="total" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p>No monthly data available.</p>
+        )}
+
+        <h2 style={{ marginTop: 20 }}>By Category</h2>
         {pieData.length > 0 ? (
           <div style={{ width: "100%", height: 300 }}>
             <ResponsiveContainer>
