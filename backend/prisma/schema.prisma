@@ -15,4 +15,12 @@ model Expense {
   createdAt DateTime @default(now())
 }
 
+model Income {
+  id        Int      @id @default(autoincrement())
+  title     String
+  amount    Float
+  source    String
+  createdAt DateTime @default(now())
+}
+
 

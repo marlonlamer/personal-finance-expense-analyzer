@@ -24,6 +24,22 @@ function App() {
     }
   });
 
+  const [incomes, setIncomes] = useState(() => {
+    try {
+      const raw = localStorage.getItem("incomes");
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [incomeForm, setIncomeForm] = useState({
+    title: "",
+    amount: "",
+    source: "",
+    date: new Date().toISOString().slice(0, 10)
+  });
+
   const [form, setForm] = useState({
     title: "",
     amount: "",
@@ -43,8 +59,20 @@ function App() {
     }
   };
 
+  const fetchIncomes = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/incomes");
+      if (!res.ok) throw new Error("Network response was not ok");
+      const data = await res.json();
+      setIncomes(data);
+    } catch (e) {
+      console.warn("Failed to fetch incomes, using localStorage", e);
+    }
+  };
+
   useEffect(() => {
     fetchExpenses();
+    fetchIncomes();
   }, []);
 
   useEffect(() => {
@@ -54,6 +82,14 @@ function App() {
       console.warn("Failed to write expenses to localStorage", e);
     }
   }, [expenses]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("incomes", JSON.stringify(incomes));
+    } catch (e) {
+      console.warn("Failed to write incomes to localStorage", e);
+    }
+  }, [incomes]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,6 +145,57 @@ function App() {
     }
   };
 
+  const handleIncomeSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        title: incomeForm.title,
+        amount: incomeForm.amount,
+        source: incomeForm.source,
+        createdAt: incomeForm.date
+      };
+
+      const res = await fetch("http://localhost:5000/incomes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const newIncome = await res.json();
+        setIncomes(prev => [newIncome, ...prev]);
+      } else {
+        console.warn("Failed to add income on server");
+      }
+    } catch (e) {
+      console.warn("Create income failed, adding locally", e);
+      const temp = {
+        id: Date.now(),
+        title: incomeForm.title,
+        amount: Number(incomeForm.amount),
+        source: incomeForm.source,
+        createdAt: incomeForm.date || new Date().toISOString()
+      };
+      setIncomes(prev => [temp, ...prev]);
+    } finally {
+      setIncomeForm({ title: "", amount: "", source: "", date: new Date().toISOString().slice(0, 10) });
+    }
+  };
+
+  const deleteIncome = async (id) => {
+    setIncomes(prev => prev.filter(i => i.id !== id));
+
+    try {
+      const res = await fetch(`http://localhost:5000/incomes/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        console.warn("Server failed to delete income, refetching");
+        fetchIncomes();
+      }
+    } catch (e) {
+      console.warn("Delete income request failed, data removed locally", e);
+    }
+  };
+
   const parseDate = (d) => (d ? new Date(d) : null);
 
   const isSameDay = (a, b) => {
@@ -157,22 +244,34 @@ function App() {
   const pieData = categorySummary.map((c) => ({ name: c.category, value: Number(c.amount) }));
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28EFF", "#FF6B6B", "#2ED573", "#FFA3A3"];
 
-  const monthlyMap = filteredExpenses.reduce((acc, expense) => {
+  const monthlyExpenseMap = expenses.reduce((acc, expense) => {
     const d = expense.createdAt ? new Date(expense.createdAt) : null;
     if (!d || isNaN(d)) return acc;
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     acc[key] = (acc[key] || 0) + Number(expense.amount || 0);
     return acc;
   }, {});
+  const monthlyIncomeMap = incomes.reduce((acc, income) => {
+    const d = income.createdAt ? new Date(income.createdAt) : null;
+    if (!d || isNaN(d)) return acc;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    acc[key] = (acc[key] || 0) + Number(income.amount || 0);
+    return acc;
+  }, {});
 
-  const lineData = Object.keys(monthlyMap)
-    .sort()
-    .map((k) => {
-      const [y, m] = k.split("-");
-      const date = new Date(Number(y), Number(m) - 1, 1);
-      const label = new Intl.DateTimeFormat("en", { month: "short", year: "numeric" }).format(date);
-      return { month: label, monthKey: k, total: Number(monthlyMap[k]) };
-    });
+  const allMonthKeys = Array.from(new Set([...Object.keys(monthlyExpenseMap), ...Object.keys(monthlyIncomeMap)])).sort();
+
+  const combinedLineData = allMonthKeys.map((k) => {
+    const [y, m] = k.split("-");
+    const date = new Date(Number(y), Number(m) - 1, 1);
+    const label = new Intl.DateTimeFormat("en", { month: "short", year: "numeric" }).format(date);
+    return {
+      month: label,
+      monthKey: k,
+      expenses: Number(monthlyExpenseMap[k] || 0),
+      incomes: Number(monthlyIncomeMap[k] || 0)
+    };
+  });
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -190,17 +289,18 @@ function App() {
       </div>
 
       <div style={{ marginTop: "1rem" }}>
-        <h2>Total Expenses Per Month</h2>
-        {lineData.length > 0 ? (
-          <div style={{ width: "100%", height: 300 }}>
+        <h2>Expenses vs Income Per Month</h2>
+        {combinedLineData.length > 0 ? (
+          <div style={{ width: "100%", height: 320 }}>
             <ResponsiveContainer>
-              <LineChart data={lineData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+              <LineChart data={combinedLineData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis tickFormatter={(v) => `₱${v.toFixed(0)}`} />
                 <Tooltip formatter={(value) => `₱${Number(value).toFixed(2)}`} />
                 <Legend />
-                <Line type="monotone" dataKey="total" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#FF6B6B" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="incomes" name="Incomes" stroke="#00C49F" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -292,6 +392,48 @@ function App() {
 
         <button type="submit">Add Expense</button>
       </form>
+
+      <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid #eee" }}>
+        <h3>Add Income</h3>
+        <form onSubmit={handleIncomeSubmit}>
+          <input
+            placeholder="Title"
+            value={incomeForm.title}
+            onChange={e => setIncomeForm({ ...incomeForm, title: e.target.value })}
+          />
+          <input
+            placeholder="Amount"
+            type="number"
+            value={incomeForm.amount}
+            onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
+          />
+          <input
+            placeholder="Date"
+            type="date"
+            value={incomeForm.date}
+            onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })}
+          />
+          <input
+            placeholder="Source"
+            value={incomeForm.source}
+            onChange={e => setIncomeForm({ ...incomeForm, source: e.target.value })}
+            required
+          />
+          <button type="submit">Add Income</button>
+        </form>
+
+        <div style={{ marginTop: "1rem" }}>
+          <p style={{ marginBottom: 8 }}>Showing {incomes.length} incomes</p>
+          <ul>
+            {incomes.map(income => (
+              <li key={income.id}>
+                {income.title} — ₱{income.amount} ({income.source}) — {new Date(income.createdAt).toLocaleDateString()}
+                <button style={{ marginLeft: "10px" }} onClick={() => deleteIncome(income.id)}>❌</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       <div style={{ marginTop: "1rem" }}>
         <p style={{ marginBottom: 8 }}>Showing {filteredExpenses.length} of {expenses.length} expenses</p>
