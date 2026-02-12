@@ -229,7 +229,21 @@ function App() {
 
   const filteredExpenses = expenses.filter(matchesFilter);
 
+  const filteredIncomes = incomes.filter(matchesFilter);
+
   const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+  const totalIncomes = filteredIncomes.reduce((sum, income) => sum + Number(income.amount || 0), 0);
+
+  const totalSavings = totalIncomes - totalExpenses;
+  const savingsRate = totalIncomes > 0 ? (totalSavings / totalIncomes) * 100 : null;
+  const savingsRateColor =
+    savingsRate === null
+      ? "inherit"
+      : savingsRate < 0
+      ? "#FF6B6B"
+      : savingsRate < 15
+      ? "#FFD166"
+      : "#2ED573";
 
   const categorySummary = Object.values(
     filteredExpenses.reduce((acc, expense) => {
@@ -276,7 +290,10 @@ function App() {
   return (
     <div style={{ padding: "2rem" }}>
       <h1>💰 Expense Analyzer</h1>
+      <p>Total Income: ₱{totalIncomes.toFixed(2)}</p>
       <p>Total Expenses: ₱{totalExpenses.toFixed(2)}</p>
+      <p>Savings: ₱{totalSavings.toFixed(2)}</p>
+      <p style={{ color: savingsRateColor }}>Savings Rate: {savingsRate !== null ? `${savingsRate.toFixed(1)}%` : "N/A"}</p>
 
       <div style={{ marginTop: "0.5rem" }}>
         <label style={{ marginRight: 8 }}>Date filter:</label>
