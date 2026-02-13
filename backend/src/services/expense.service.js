@@ -1,34 +1,42 @@
 const prisma = require("../prisma/client");
 
-const getAllExpenses = async () => {
+const getAllExpenses = async (userId) => {
   return prisma.expense.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" }
   });
 };
 
-const createExpense = async ({ title, amount, category, createdAt }) => {
-  const data = {
-    title,
-    amount: Number(amount),
-    category
-  };
-
-  if (createdAt) {
-    data.createdAt = new Date(createdAt);
-  }
-
+const createExpense = async ({
+  title,
+  amount,
+  category,
+  date,
+  userId
+}) => {
   return prisma.expense.create({
-    data
+    data: {
+      title,
+      amount: Number(amount),
+      category,
+      date: new Date(date),
+      userId
+    }
   });
 };
 
-const deleteExpense = async (id) => {
+const deleteExpense = async (id, userId) => {
   return prisma.expense.delete({
-    where: { id: Number(id) }
+    where: {
+      id: Number(id),
+      userId
+    }
   });
 };
+
 module.exports = {
   getAllExpenses,
-  createExpense
-  ,deleteExpense
+  createExpense,
+  deleteExpense
 };
+

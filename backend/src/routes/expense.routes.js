@@ -7,8 +7,8 @@ const {
 
 const router = express.Router();
 
-router.get("/", getExpenses);
-router.post("/", createExpense);
-router.delete("/:id", deleteExpense);
+router.get("/", authMiddleware, getExpenses);
+router.post("/", authMiddleware, createExpense);
+router.delete("/:id", authMiddleware, deleteExpense);
 
 module.exports = router;

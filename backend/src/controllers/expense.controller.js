@@ -1,8 +1,10 @@
 const expenseService = require("../services/expense.service");
+const expenses = await expenseService.getAllExpenses(req.userId);
+
 
 const getExpenses = async (req, res) => {
   try {
-    const expenses = await expenseService.getAllExpenses();
+    const expenses = await expenseService.getAllExpenses(req.userId);
     res.json(expenses);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch expenses" });
