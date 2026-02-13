@@ -12,7 +12,11 @@ model Expense {
   title     String
   amount    Float
   category  String
+  date      DateTime @default(now())
   createdAt DateTime @default(now())
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Income {
@@ -20,7 +24,22 @@ model Income {
   title     String
   amount    Float
   source    String
+  date      DateTime @default(now())
   createdAt DateTime @default(now())
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 }
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+
+  expenses  Expense[]
+  income    Income[]
+}
+
 
 
