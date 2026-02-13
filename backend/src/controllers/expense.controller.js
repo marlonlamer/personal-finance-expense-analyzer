@@ -1,5 +1,4 @@
 const expenseService = require("../services/expense.service");
-const expenses = await expenseService.getAllExpenses(req.userId);
 
 
 const getExpenses = async (req, res) => {
