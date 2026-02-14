@@ -11,7 +11,7 @@ const createIncome = async ({
   title,
   amount,
   source,
-  date,
+  createdAt,
   userId
 }) => {
   if (!userId) {
@@ -23,7 +23,7 @@ const createIncome = async ({
       title,
       amount: Number(amount),
       source,
-      date: new Date(date),
+      createdAt: new Date(createdAt),
       userId
     }
   });
