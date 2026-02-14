@@ -2,7 +2,7 @@ const incomeService = require("../services/income.service");
 
 const getIncomes = async (req, res) => {
   try {
-    const incomes = await incomeService.getAllIncomes();
+    const incomes = await incomeService.getAllIncomes(req.userId);
     res.json(incomes);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch incomes" });
