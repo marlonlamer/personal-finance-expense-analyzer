@@ -58,23 +58,39 @@ function App() {
 
   const fetchExpenses = async () => {
     try {
-      const res = await fetch("http://localhost:5000/expenses");
+      const token = localStorage.getItem("token");
+
+      const res = await fetch("http://localhost:5000/expenses", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
       if (!res.ok) throw new Error("Network response was not ok");
+
       const data = await res.json();
       setExpenses(data);
     } catch (e) {
-      console.warn("Failed to fetch expenses, using localStorage", e);
+      console.warn("Failed to fetch expenses", e);
     }
   };
 
   const fetchIncomes = async () => {
     try {
-      const res = await fetch("http://localhost:5000/incomes");
+      const token = localStorage.getItem("token");
+      
+      const res = await fetch("http://localhost:5000/incomes", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
       if (!res.ok) throw new Error("Network response was not ok");
+
       const data = await res.json();
       setIncomes(data);
     } catch (e) {
-      console.warn("Failed to fetch incomes, using localStorage", e);
+      console.warn("Failed to fetch incomes", e);
     }
   };
 
@@ -194,6 +210,7 @@ function App() {
       const res = await fetch("http://localhost:5000/expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
         body: JSON.stringify(payload)
       });
 
@@ -248,6 +265,7 @@ function App() {
       const res = await fetch("http://localhost:5000/incomes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
         body: JSON.stringify(payload)
       });
 
