@@ -209,8 +209,11 @@ function App() {
 
       const res = await fetch("http://localhost:5000/expenses", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+         },
+        
         body: JSON.stringify(payload)
       });
 
@@ -240,7 +243,10 @@ function App() {
 
     try {
       const res = await fetch(`http://localhost:5000/expenses/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+       }
       });
 
       if (!res.ok) {
@@ -264,8 +270,11 @@ function App() {
 
       const res = await fetch("http://localhost:5000/incomes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+         },
+        
         body: JSON.stringify(payload)
       });
 
@@ -294,7 +303,12 @@ function App() {
     setIncomes(prev => prev.filter(i => i.id !== id));
 
     try {
-      const res = await fetch(`http://localhost:5000/incomes/${id}`, { method: "DELETE" });
+      const res = await fetch(`http://localhost:5000/incomes/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+         }
+      });
       if (!res.ok) {
         console.warn("Server failed to delete income, refetching");
         fetchIncomes();
