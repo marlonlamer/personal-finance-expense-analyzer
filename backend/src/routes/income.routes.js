@@ -4,8 +4,8 @@ const authMiddleware = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
-router.get("/", authMiddleware, getIncomes);
-router.post("/", authMiddleware, createIncome);
-router.delete("/:id", authMiddleware, deleteIncome);
+router.get("/incomes", authMiddleware, getIncomes);
+router.post("/incomes", authMiddleware, createIncome);
+router.delete("/incomes/:id", authMiddleware, deleteIncome);
 
 module.exports = router;

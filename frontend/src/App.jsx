@@ -1,4 +1,4 @@
-
+import { api } from "./api";
 import { useEffect, useState, useRef } from "react";
 import {
   PieChart,
@@ -14,7 +14,7 @@ import {
   CartesianGrid
 } from "recharts";
 
-function App() {
+  function App() {
   const [expenses, setExpenses] = useState(() => {
     try {
       const raw = localStorage.getItem("expenses");
@@ -58,36 +58,17 @@ function App() {
 
   const fetchExpenses = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch("http://localhost:5000/expenses", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) throw new Error("Network response was not ok");
-
-      const data = await res.json();
+      const data = await api.get("/expenses");
       setExpenses(data);
     } catch (e) {
       console.warn("Failed to fetch expenses", e);
     }
   };
 
+
   const fetchIncomes = async () => {
     try {
-      const token = localStorage.getItem("token");
-      
-      const res = await fetch("http://localhost:5000/incomes", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) throw new Error("Network response was not ok");
-
-      const data = await res.json();
+      const data = await api.get("/incomes");
       setIncomes(data);
     } catch (e) {
       console.warn("Failed to fetch incomes", e);
@@ -199,30 +180,17 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const payload = {
+      const newExpense = await api.post("/expenses", {
         title: form.title,
         amount: form.amount,
         category: form.category,
         createdAt: form.date
-      };
-
-      const res = await fetch("http://localhost:5000/expenses", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json", 
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-         },
-        
-        body: JSON.stringify(payload)
       });
 
-      if (res.ok) {
-        const newExpense = await res.json();
-        setExpenses(prev => [newExpense, ...prev]);
-      } else {
-        console.warn("Failed to add expense on server");
-      }
+      setExpenses(prev => [newExpense, ...prev]);
+
     } catch (e) {
       console.warn("Create expense failed, adding locally", e);
       const temp = {
@@ -241,49 +209,22 @@ function App() {
   const deleteExpense = async (id) => {
     setExpenses(prev => prev.filter(e => e.id !== id));
 
-    try {
-      const res = await fetch(`http://localhost:5000/expenses/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-       }
-      });
-
-      if (!res.ok) {
-        console.warn("Server failed to delete, refetching");
-        fetchExpenses();
-      }
-    } catch (e) {
-      console.warn("Delete request failed, data removed locally", e);
-    }
+    await api.delete(`/expenses/${id}`);
+    fetchExpenses();
   };
 
   const handleIncomeSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
+      const newIncome = await api.post("/incomes", {
         title: incomeForm.title,
         amount: incomeForm.amount,
         source: incomeForm.source,
         createdAt: incomeForm.date
-      };
-
-      const res = await fetch("http://localhost:5000/incomes", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-         },
-        
-        body: JSON.stringify(payload)
       });
 
-      if (res.ok) {
-        const newIncome = await res.json();
-        setIncomes(prev => [newIncome, ...prev]);
-      } else {
-        console.warn("Failed to add income on server");
-      }
+      setIncomes(prev => [newIncome, ...prev]);
+
     } catch (e) {
       console.warn("Create income failed, adding locally", e);
       const temp = {
@@ -302,20 +243,8 @@ function App() {
   const deleteIncome = async (id) => {
     setIncomes(prev => prev.filter(i => i.id !== id));
 
-    try {
-      const res = await fetch(`http://localhost:5000/incomes/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-         }
-      });
-      if (!res.ok) {
-        console.warn("Server failed to delete income, refetching");
-        fetchIncomes();
-      }
-    } catch (e) {
-      console.warn("Delete income request failed, data removed locally", e);
-    }
+    await api.delete(`/incomes/${id}`);
+    fetchIncomes();
   };
 
   const editCategoryBudget = (category) => {
