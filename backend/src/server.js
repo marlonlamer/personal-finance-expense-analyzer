@@ -7,3 +7,7 @@ const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+app.use(require("./routes/expense.routes"));
+app.use(require("./routes/income.routes"));
+app.use(require("./routes/auth.routes"))

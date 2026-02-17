@@ -14,8 +14,8 @@ app.get("/", (req, res) => {
   res.send("Expense Analyzer API is running 🚀");
 });
 
-app.use("/expenses", expenseRoutes);
-app.use("/incomes", incomeRoutes);
-app.use("/auth", authRoutes);
+app.use(expenseRoutes);
+app.use(incomeRoutes);
+app.use(authRoutes);
 
 module.exports = app;
