@@ -15,23 +15,8 @@ import {
 } from "recharts";
 
   function App() {
-  const [expenses, setExpenses] = useState(() => {
-    try {
-      const raw = localStorage.getItem("expenses");
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const [incomes, setIncomes] = useState(() => {
-    try {
-      const raw = localStorage.getItem("incomes");
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [expenses, setExpenses] = useState([]);
+  const [incomes, setIncomes] = useState([]);
 
   const [incomeForm, setIncomeForm] = useState({
     title: "",
@@ -51,7 +36,7 @@ import {
     try {
       const raw = localStorage.getItem("monthlyBudget");
       return raw ? Number(raw) : null;
-    } catch (e) {
+    } catch  {
       return null;
     }
   });
@@ -80,47 +65,7 @@ import {
     fetchIncomes();
   }, []);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("expenses", JSON.stringify(expenses));
-    } catch (e) {
-      console.warn("Failed to write expenses to localStorage", e);
-    }
-  }, [expenses]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("incomes", JSON.stringify(incomes));
-    } catch (e) {
-      console.warn("Failed to write incomes to localStorage", e);
-    }
-  }, [incomes]);
-
-  useEffect(() => {
-    try {
-      if (monthlyBudget === null) localStorage.removeItem("monthlyBudget");
-      else localStorage.setItem("monthlyBudget", String(monthlyBudget));
-    } catch (e) {
-      console.warn("Failed to persist monthlyBudget", e);
-    }
-  }, [monthlyBudget]);
-
-  const [perCategoryBudgets, setPerCategoryBudgets] = useState(() => {
-    try {
-      const raw = localStorage.getItem("categoryBudgets");
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("categoryBudgets", JSON.stringify(perCategoryBudgets));
-    } catch (e) {
-      console.warn("Failed to persist categoryBudgets", e);
-    }
-  }, [perCategoryBudgets]);
+  const [perCategoryBudgets, setPerCategoryBudgets] = useState([]);
 
   // Modal & autosave state for editing category budgets
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
