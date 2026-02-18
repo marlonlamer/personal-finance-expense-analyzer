@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Expense Analyzer API is running 🚀");
+  res.send("Server working");
 });
 
 app.use(expenseRoutes);
