@@ -11,7 +11,6 @@ const createExpense = async ({
   title,
   amount,
   category,
-  date,
   userId
 }) => {
   return prisma.expense.create({
@@ -19,7 +18,6 @@ const createExpense = async ({
       title,
       amount: Number(amount),
       category,
-      date: new Date(date),
       userId
     }
   });

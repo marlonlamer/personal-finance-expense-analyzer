@@ -11,7 +11,7 @@ const getExpenses = async (req, res) => {
 };
 
 const createExpense = async (req, res) => {
-  const { title, amount, category, createdAt } = req.body;
+  const { title, amount, category, } = req.body;
 
   if (!title || !amount || !category) {
     return res.status(400).json({ error: "All fields are required" });
@@ -22,7 +22,7 @@ const createExpense = async (req, res) => {
       title,
       amount,
       category,
-      createdAt
+      userId: req.userId
     });
     res.status(201).json(expense);
   } catch (error) {
@@ -31,10 +31,8 @@ const createExpense = async (req, res) => {
 };
 
 const deleteExpense = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    await expenseService.deleteExpense(id);
+    await expenseService.deleteExpense(req.params.id, req.userId);
     res.json({ message: "Expense deleted" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete expense" });

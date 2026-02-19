@@ -15,7 +15,7 @@ const getIncomes = async (req, res) => {
 };
 
 const createIncome = async (req, res) => {
-  const { title, amount, source, createAt } = req.body;
+  const { title, amount, source } = req.body;
 
   if (!title || !amount || !source) {
     return res.status(400).json({ error: "All fields are required" });
@@ -26,7 +26,6 @@ const createIncome = async (req, res) => {
       title,
       amount,
       source,
-      createdAt: new Date(createAt),
       userId: req.userId
     });
 

@@ -131,7 +131,6 @@ import {
         title: form.title,
         amount: form.amount,
         category: form.category,
-        createdAt: form.date
       });
 
       setExpenses(prev => [newExpense, ...prev]);
@@ -143,7 +142,6 @@ import {
         title: form.title,
         amount: Number(form.amount),
         category: form.category,
-        createdAt: form.date || new Date().toISOString()
       };
       setExpenses(prev => [temp, ...prev]);
     } finally {
@@ -165,7 +163,6 @@ import {
         title: incomeForm.title,
         amount: incomeForm.amount,
         source: incomeForm.source,
-        createdAt: incomeForm.date
       });
 
       setIncomes(prev => [newIncome, ...prev]);
@@ -177,7 +174,6 @@ import {
         title: incomeForm.title,
         amount: Number(incomeForm.amount),
         source: incomeForm.source,
-        createdAt: incomeForm.date || new Date().toISOString()
       };
       setIncomes(prev => [temp, ...prev]);
     } finally {
@@ -511,12 +507,6 @@ import {
           value={form.amount}
           onChange={e => setForm({ ...form, amount: e.target.value })}
         />
-        <input
-          placeholder="Date"
-          type="date"
-          value={form.date}
-          onChange={e => setForm({ ...form, date: e.target.value })}
-        />
         <select
           value={form.category}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
@@ -549,12 +539,6 @@ import {
             type="number"
             value={incomeForm.amount}
             onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
-          />
-          <input
-            placeholder="Date"
-            type="date"
-            value={incomeForm.date}
-            onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })}
           />
           <input
             placeholder="Source"
