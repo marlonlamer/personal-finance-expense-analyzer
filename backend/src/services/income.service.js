@@ -3,7 +3,7 @@ const prisma = require("../prisma/client");
 const getAllIncomes = async (userId) => {
   return prisma.income.findMany({ 
     where: { userId },
-    orderBy: { createdAt: "desc" } 
+    orderBy: { date: "desc" } 
   });
 };
 
@@ -11,7 +11,6 @@ const createIncome = async ({
   title,
   amount,
   source,
-  createdAt,
   userId
 }) => {
   if (!userId) {
@@ -23,7 +22,6 @@ const createIncome = async ({
       title,
       amount: Number(amount),
       source,
-      createdAt: new Date(createdAt),
       userId
     }
   });

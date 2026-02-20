@@ -228,8 +228,8 @@ import {
   };
 
   const matchesFilter = (expense) => {
-    if (!expense || !expense.createdAt) return dateFilter === "all";
-    const d = parseDate(expense.createdAt);
+    if (!expense || !expense.date) return dateFilter === "all";
+    const d = parseDate(expense.date);
     if (!d || isNaN(d)) return false;
     if (dateFilter === "all") return true;
     if (dateFilter === "today") return isSameDay(d, new Date());
@@ -286,14 +286,14 @@ import {
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28EFF", "#FF6B6B", "#2ED573", "#FFA3A3"];
 
   const monthlyExpenseMap = expenses.reduce((acc, expense) => {
-    const d = expense.createdAt ? new Date(expense.createdAt) : null;
+    const d = expense.date ? new Date(expense.date) : null;
     if (!d || isNaN(d)) return acc;
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     acc[key] = (acc[key] || 0) + Number(expense.amount || 0);
     return acc;
   }, {});
   const monthlyIncomeMap = incomes.reduce((acc, income) => {
-    const d = income.createdAt ? new Date(income.createdAt) : null;
+    const d = income.date ? new Date(income.date) : null;
     if (!d || isNaN(d)) return acc;
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     acc[key] = (acc[key] || 0) + Number(income.amount || 0);
@@ -554,7 +554,7 @@ import {
           <ul>
             {incomes.map(income => (
               <li key={income.id}>
-                {income.title} — ₱{income.amount} ({income.source}) — {new Date(income.createdAt).toLocaleDateString()}
+                {income.title} — ₱{income.amount} ({income.source}) — {new Date(income.date).toLocaleDateString()}
                 <button style={{ marginLeft: "10px" }} onClick={() => deleteIncome(income.id)}>❌</button>
               </li>
             ))}
@@ -567,7 +567,7 @@ import {
         <ul>
           {filteredExpenses.map(expense => (
             <li key={expense.id}>
-              {expense.title} — ₱{expense.amount} ({expense.category}) — {new Date(expense.createdAt).toLocaleDateString()}
+              {expense.title} — ₱{expense.amount} ({expense.category}) — {new Date(expense.date).toLocaleDateString()}
               <button style={{ marginLeft: "10px" }} onClick={() => deleteExpense(expense.id)}>❌</button>
             </li>
           ))}

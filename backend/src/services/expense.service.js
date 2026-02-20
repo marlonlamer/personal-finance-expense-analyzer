@@ -3,7 +3,7 @@ const prisma = require("../prisma/client");
 const getAllExpenses = async (userId) => {
   return prisma.expense.findMany({
     where: { userId },
-    orderBy: { createdAt: "desc" }
+    orderBy: { date: "desc" }
   });
 };
 

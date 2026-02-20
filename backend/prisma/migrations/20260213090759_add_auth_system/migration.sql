@@ -10,7 +10,7 @@ CREATE TABLE "User" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "date" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- RedefineTables
@@ -22,11 +22,10 @@ CREATE TABLE "new_Expense" (
     "amount" REAL NOT NULL,
     "category" TEXT NOT NULL,
     "date" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "userId" INTEGER NOT NULL,
     CONSTRAINT "Expense_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
-INSERT INTO "new_Expense" ("amount", "category", "createdAt", "id", "title") SELECT "amount", "category", "createdAt", "id", "title" FROM "Expense";
+INSERT INTO "new_Expense" ("amount", "category", "date", "id", "title") SELECT "amount", "category", "date", "id", "title" FROM "Expense";
 DROP TABLE "Expense";
 ALTER TABLE "new_Expense" RENAME TO "Expense";
 CREATE TABLE "new_Income" (
@@ -35,11 +34,10 @@ CREATE TABLE "new_Income" (
     "amount" REAL NOT NULL,
     "source" TEXT NOT NULL,
     "date" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "userId" INTEGER NOT NULL,
     CONSTRAINT "Income_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
-INSERT INTO "new_Income" ("amount", "createdAt", "id", "source", "title") SELECT "amount", "createdAt", "id", "source", "title" FROM "Income";
+INSERT INTO "new_Income" ("amount", "date", "id", "source", "title") SELECT "amount", "date", "id", "source", "title" FROM "Income";
 DROP TABLE "Income";
 ALTER TABLE "new_Income" RENAME TO "Income";
 PRAGMA foreign_keys=ON;
