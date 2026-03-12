@@ -327,6 +327,22 @@ import {
       incomes: Number(monthlyIncomeMap[k] || 0)
     };
   });
+  // Monthly totals for the current month
+  const monthlyIncomeTotal = incomes.reduce((sum, income) => {
+    const d = income.date ? new Date(income.date) : null;
+    return sum + (d && isWithinMonth(d) ? Number(income.amount || 0) : 0);
+  }, 0);
+
+  const monthlyExpenseTotal = expenses.reduce((sum, expense) => {
+    const d = expense.date ? new Date(expense.date) : null;
+    return sum + (d && isWithinMonth(d) ? Number(expense.amount || 0) : 0);
+  }, 0);
+
+  // Available balance for the month
+  const availableBalance = monthlyIncomeTotal - monthlyExpenseTotal;
+
+  // Total net worth (based on tracked data = total incomes - total expenses)
+  const totalNetWorth = totalIncomes - totalExpenses;
   const [page, setPage] = useState("dashboard");
 
   const renderPage = () => {
@@ -334,6 +350,28 @@ import {
       return (
         <>
           <h1>💰 Expense Analyzer</h1>
+          <div style={{ display: "flex", gap: 12, marginTop: 12, flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 160px", background: "#fff", padding: 12, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 12, color: "#666" }}>Available Balance</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>₱{availableBalance.toFixed(2)}</div>
+            </div>
+            <div style={{ flex: "1 1 160px", background: "#fff", padding: 12, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 12, color: "#666" }}>Total Savings</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>₱{totalSavings.toFixed(2)}</div>
+            </div>
+            <div style={{ flex: "1 1 160px", background: "#fff", padding: 12, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 12, color: "#666" }}>Monthly Income</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>₱{monthlyIncomeTotal.toFixed(2)}</div>
+            </div>
+            <div style={{ flex: "1 1 160px", background: "#fff", padding: 12, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 12, color: "#666" }}>Monthly Expenses</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>₱{monthlyExpenseTotal.toFixed(2)}</div>
+            </div>
+            <div style={{ flex: "1 1 160px", background: "#fff", padding: 12, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 12, color: "#666" }}>Total Net Worth</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>₱{totalNetWorth.toFixed(2)}</div>
+            </div>
+          </div>
           <p>Total Income: ₱{totalIncomes.toFixed(2)}</p>
           <p>Total Expenses: ₱{totalExpenses.toFixed(2)}</p>
           <p>Savings: ₱{totalSavings.toFixed(2)}</p>
