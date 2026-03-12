@@ -575,14 +575,14 @@ import {
         <h2 style={{ marginTop: 0 }}>Expense Analyzer</h2>
         <ul style={{ listStyle: "none", padding: 0 }}>
           {[
-            ["dashboard", "Dashboard"],
-            ["transactions", "Transactions"],
-            ["income", "Income"],
-            ["expenses", "Expenses"],
-            ["savings", "Savings"],
-            ["reports", "Reports"],
-            ["profile", "Profile"],
-            ["settings", "Settings"]
+            ["dashboard", "🏠 Dashboard"],
+            ["transactions", "🧾 Transactions"],
+            ["income", "💰 Income"],
+            ["expenses", "💸 Expenses"],
+            ["savings", "🏦 Savings"],
+            ["reports", "📈 Reports"],
+            ["profile", "👤 Profile"],
+            ["settings", "⚙️ Settings"]
           ].map(([key, label]) => (
             <li key={key} style={{ marginBottom: 8 }}>
               <button onClick={() => setPage(key)} style={{ width: "100%", textAlign: "left", padding: "8px 10px", background: page === key ? "#e6f7ff" : "transparent", border: "none", borderRadius: 4 }}>{label}</button>
