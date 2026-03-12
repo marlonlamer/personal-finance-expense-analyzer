@@ -19,17 +19,20 @@ import {
   const [incomes, setIncomes] = useState([]);
 
   const [incomeForm, setIncomeForm] = useState({
-    title: "",
     amount: "",
+    category: "",
     source: "",
-    date: new Date().toISOString().slice(0, 10)
+    date: new Date().toISOString().slice(0, 10),
+    notes: ""
   });
 
   const [form, setForm] = useState({
-    title: "",
     amount: "",
     category: "",
-    date: new Date().toISOString().slice(0, 10)
+    description: "",
+    source: "",
+    date: new Date().toISOString().slice(0, 10),
+    notes: ""
   });
   const [dateFilter, setDateFilter] = useState("all");
   const [monthlyBudget, setMonthlyBudget] = useState(() => {
@@ -128,9 +131,12 @@ import {
 
     try {
       const newExpense = await api.post("/expenses", {
-        title: form.title,
         amount: form.amount,
         category: form.category,
+        description: form.description,
+        source: form.source,
+        date: form.date,
+        notes: form.notes
       });
 
       setExpenses(prev => [newExpense, ...prev]);
@@ -139,9 +145,12 @@ import {
       console.warn("Create expense failed, adding locally", e);
       const temp = {
         id: Date.now(),
-        title: form.title,
+        description: form.description,
+        source: form.source,
         amount: Number(form.amount),
         category: form.category,
+        date: form.date,
+        notes: form.notes
       };
       setExpenses(prev => [temp, ...prev]);
     } finally {
@@ -160,9 +169,12 @@ import {
     e.preventDefault();
     try {
       const newIncome = await api.post("/incomes", {
-        title: incomeForm.title,
+        // backend expects `title` — map the new `name` field to `title`
         amount: incomeForm.amount,
         source: incomeForm.source,
+        date: incomeForm.date,
+        category: incomeForm.category,
+        notes: incomeForm.notes
       });
 
       setIncomes(prev => [newIncome, ...prev]);
@@ -171,13 +183,15 @@ import {
       console.warn("Create income failed, adding locally", e);
       const temp = {
         id: Date.now(),
-        title: incomeForm.title,
         amount: Number(incomeForm.amount),
         source: incomeForm.source,
+        date: incomeForm.date,
+        category: incomeForm.category,
+        notes: incomeForm.notes
       };
       setIncomes(prev => [temp, ...prev]);
     } finally {
-      setIncomeForm({ title: "", amount: "", source: "", date: new Date().toISOString().slice(0, 10) });
+      setIncomeForm({ amount: "", category: "", source: "", date: new Date().toISOString().slice(0, 10), notes: "" });
     }
   };
 
@@ -497,11 +511,6 @@ import {
 
       <form onSubmit={handleSubmit}>
         <input
-          placeholder="Title"
-          value={form.title}
-          onChange={e => setForm({ ...form, title: e.target.value })}
-        />
-        <input
           placeholder="Amount"
           type="number"
           value={form.amount}
@@ -515,51 +524,90 @@ import {
           <option value="">Select category</option>
           <option value="Food">Food</option>
           <option value="Transportation">Transportation</option>
-          <option value="Rent/Housing">Rent / Housing</option>
-          <option value="Utilities">Utilities</option>
+          <option value="Rent">Rent</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Bills">Bills</option>
           <option value="Health">Health</option>
           <option value="Entertainment">Entertainment</option>
           <option value="Education">Education</option>
-          <option value="Other">Other</option>
+          <option value="Other">Add your own</option>
         </select>
 
+        <input
+          placeholder="Description"
+          value={form.description}
+          onChange={e => setForm({ ...form, description: e.target.value })}
+        />
+        <input
+          placeholder="Source"
+          value={form.source}
+          onChange={e => setForm({ ...form, source: e.target.value })}
+        />
+        <input
+          type="date"
+          value={form.date}
+          onChange={e => setForm({ ...form, date: e.target.value })}
+        />
+        <input
+          placeholder="Notes"
+          value={form.notes}
+          onChange={e => setForm({ ...form, notes: e.target.value })}
+        />
         <button type="submit">Add Expense</button>
       </form>
 
       <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid #eee" }}>
         <h3>Add Income</h3>
-        <form onSubmit={handleIncomeSubmit}>
-          <input
-            placeholder="Title"
-            value={incomeForm.title}
-            onChange={e => setIncomeForm({ ...incomeForm, title: e.target.value })}
-          />
-          <input
-            placeholder="Amount"
-            type="number"
-            value={incomeForm.amount}
-            onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
-          />
-          <input
-            placeholder="Source"
-            value={incomeForm.source}
-            onChange={e => setIncomeForm({ ...incomeForm, source: e.target.value })}
-            required
-          />
-          <button type="submit">Add Income</button>
-        </form>
+          <form onSubmit={handleIncomeSubmit}>
+            <input
+              placeholder="Amount"
+              type="number"
+              value={incomeForm.amount}
+              onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
+              required
+            />
+            <select
+              value={incomeForm.category}
+              onChange={e => setIncomeForm({ ...incomeForm, category: e.target.value })}
+            >
+              <option value="">Select category</option>
+              <option value="Salary">Salary</option>
+              <option value="Freelance">Freelance</option>
+              <option value="Investment">Investment</option>
+              <option value="Business">Business</option>
+              <option value="Side Hustle">Side Hustle</option>
+              <option value="Other">Add your own</option>
+            </select>
+            <input
+              placeholder="Source of Fund"
+              value={incomeForm.source}
+              onChange={e => setIncomeForm({ ...incomeForm, source: e.target.value })}
+              required
+            />
+            <input
+              type="date"
+              value={incomeForm.date}
+              onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })}
+            />
+            <input
+              placeholder="Notes"
+              value={incomeForm.notes}
+              onChange={e => setIncomeForm({ ...incomeForm, notes: e.target.value })}
+            />
+            <button type="submit">Add Income</button>
+          </form>
 
-        <div style={{ marginTop: "1rem" }}>
-          <p style={{ marginBottom: 8 }}>Showing {incomes.length} incomes</p>
-          <ul>
-            {incomes.map(income => (
-              <li key={income.id}>
-                {income.title} — ₱{income.amount} ({income.source}) — {new Date(income.date).toLocaleDateString()}
-                <button style={{ marginLeft: "10px" }} onClick={() => deleteIncome(income.id)}>❌</button>
-              </li>
-            ))}
-          </ul>
-        </div>
+          <div style={{ marginTop: "1rem" }}>
+            <p style={{ marginBottom: 8 }}>Showing {incomes.length} incomes</p>
+            <ul>
+              {incomes.map(income => (
+                <li key={income.id}>
+                  ₱{income.amount} {income.category ? `(${income.category})` : `(${income.source})`} — {(income.date ? new Date(income.date).toLocaleDateString() : "N/A")} {income.notes ? `— ${income.notes}` : null}
+                  <button style={{ marginLeft: "10px" }} onClick={() => deleteIncome(income.id)}>❌</button>
+                </li>
+              ))}
+            </ul>
+          </div>
       </div>
 
       <div style={{ marginTop: "1rem" }}>
@@ -567,7 +615,7 @@ import {
         <ul>
           {filteredExpenses.map(expense => (
             <li key={expense.id}>
-              {expense.title} — ₱{expense.amount} ({expense.category}) — {new Date(expense.date).toLocaleDateString()}
+              ₱{expense.amount} {expense.category ? `(${expense.category})` : `(${expense.source})`} {expense.description} — {(expense.date ? new Date(expense.date).toLocaleDateString() : "N/A")} {expense.notes ? `— ${expense.notes}` : null}
               <button style={{ marginLeft: "10px" }} onClick={() => deleteExpense(expense.id)}>❌</button>
             </li>
           ))}
