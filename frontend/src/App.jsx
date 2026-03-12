@@ -522,15 +522,15 @@ import {
           required
         >
           <option value="">Select category</option>
-          <option value="Food">Food</option>
-          <option value="Transportation">Transportation</option>
-          <option value="Rent">Rent</option>
-          <option value="Shopping">Shopping</option>
-          <option value="Bills">Bills</option>
-          <option value="Health">Health</option>
-          <option value="Entertainment">Entertainment</option>
-          <option value="Education">Education</option>
-          <option value="Other">Add your own</option>
+          <option value="Food">🍔 Food</option>
+          <option value="Transportation">🚗 Transportation</option>
+          <option value="Rent">🏠 Rent</option>
+          <option value="Shopping">🛍️ Shopping</option>
+          <option value="Bills">💡 Bills</option>
+          <option value="Health">🩺 Health</option>
+          <option value="Entertainment">🎬 Entertainment</option>
+          <option value="Education">🎓 Education</option>
+          <option value="Other">➕ Other</option>
         </select>
 
         <input
@@ -571,12 +571,12 @@ import {
               onChange={e => setIncomeForm({ ...incomeForm, category: e.target.value })}
             >
               <option value="">Select category</option>
-              <option value="Salary">Salary</option>
-              <option value="Freelance">Freelance</option>
-              <option value="Investment">Investment</option>
-              <option value="Business">Business</option>
-              <option value="Side Hustle">Side Hustle</option>
-              <option value="Other">Add your own</option>
+              <option value="Salary">💼 Salary</option>
+              <option value="Freelance">💻 Freelance</option>
+              <option value="Investment">📈 Investment</option>
+              <option value="Business">🏢 Business</option>
+              <option value="Side Hustle">💪 Side Hustle</option>
+              <option value="Other">➕ Other</option>
             </select>
             <input
               placeholder="Source of Fund"
