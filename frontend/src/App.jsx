@@ -1,4 +1,5 @@
 import { api } from "./api";
+import "./App.css";
 import { useEffect, useState, useRef } from "react";
 import {
   PieChart,
@@ -72,6 +73,10 @@ import {
 
   // Modal & autosave state for editing category budgets
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
+  // Add Income modal
+  const [incomeModalOpen, setIncomeModalOpen] = useState(false);
+  // Add Expense modal
+  const [expenseModalOpen, setExpenseModalOpen] = useState(false);
   const [tempBudgets, setTempBudgets] = useState({});
   const originalBudgetsRef = useRef({});
   const autosaveTimerRef = useRef(null);
@@ -155,6 +160,7 @@ import {
       setExpenses(prev => [temp, ...prev]);
     } finally {
       setForm({ title: "", amount: "", category: "", date: new Date().toISOString().slice(0, 10) });
+      setExpenseModalOpen(false);
     }
   };
 
@@ -192,6 +198,7 @@ import {
       setIncomes(prev => [temp, ...prev]);
     } finally {
       setIncomeForm({ amount: "", category: "", source: "", date: new Date().toISOString().slice(0, 10), notes: "" });
+      setIncomeModalOpen(false);
     }
   };
 
@@ -218,27 +225,6 @@ import {
       return;
     }
     setPerCategoryBudgets(prev => ({ ...prev, [category]: num }));
-  };
-
-
-  const parseDate = (d) => (d ? new Date(d) : null);
-
-  const isSameDay = (a, b) => {
-    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  };
-
-  const isWithinWeek = (date) => {
-    const now = new Date();
-    const start = new Date(now);
-    start.setDate(now.getDate() - 6); // last 7 days including today
-    start.setHours(0,0,0,0);
-    const d = new Date(date);
-    return d >= start && d <= now;
-  };
-
-  const isWithinMonth = (date) => {
-    const now = new Date();
-    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
   };
 
   const matchesFilter = (expense) => {
@@ -496,23 +482,40 @@ import {
     if (page === "income") {
       return (
         <div>
-          <h3>Add Income</h3>
-          <form onSubmit={handleIncomeSubmit}>
-            <input placeholder="Amount" type="number" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
-            <select value={incomeForm.category} onChange={e => setIncomeForm({ ...incomeForm, category: e.target.value })}>
-              <option value="">Select category</option>
-              <option value="Salary">💼 Salary</option>
-              <option value="Freelance">💻 Freelance</option>
-              <option value="Investment">📈 Investment</option>
-              <option value="Business">🏢 Business</option>
-              <option value="Side Hustle">💪 Side Hustle</option>
-              <option value="Other">➕ Other</option>
-            </select>
-            <input placeholder="Source of Fund" value={incomeForm.source} onChange={e => setIncomeForm({ ...incomeForm, source: e.target.value })} required />
-            <input type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} />
-            <input placeholder="Notes" value={incomeForm.notes} onChange={e => setIncomeForm({ ...incomeForm, notes: e.target.value })} />
-            <button type="submit">Add Income</button>
-          </form>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <h3 style={{ margin: 0 }}>Incomes</h3>
+            <button className="btn btn-primary" onClick={() => setIncomeModalOpen(true)}>＋ Add Income</button>
+          </div>
+
+          {incomeModalOpen && (
+            <div className="modal-overlay" onClick={() => setIncomeModalOpen(false)}>
+              <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <h3 style={{ margin: 0 }}>Add Income</h3>
+                  <button className="btn btn-ghost" onClick={() => setIncomeModalOpen(false)}>✕</button>
+                </div>
+                <form onSubmit={handleIncomeSubmit} style={{ display: "grid", gap: 10 }}>
+                  <input className="modern-input" placeholder="Amount" type="number" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
+                  <select className="modern-input" value={incomeForm.category} onChange={e => setIncomeForm({ ...incomeForm, category: e.target.value })}>
+                    <option value="">Select category</option>
+                    <option value="Salary">💼 Salary</option>
+                    <option value="Freelance">💻 Freelance</option>
+                    <option value="Investment">📈 Investment</option>
+                    <option value="Business">🏢 Business</option>
+                    <option value="Side Hustle">💪 Side Hustle</option>
+                    <option value="Other">➕ Other</option>
+                  </select>
+                  <input className="modern-input" placeholder="Source of Fund" value={incomeForm.source} onChange={e => setIncomeForm({ ...incomeForm, source: e.target.value })} required />
+                  <input className="modern-input" type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} />
+                  <input className="modern-input" placeholder="Notes" value={incomeForm.notes} onChange={e => setIncomeForm({ ...incomeForm, notes: e.target.value })} />
+                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 6 }}>
+                    <button type="button" className="btn" onClick={() => setIncomeModalOpen(false)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary">Add Income</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           <h3 style={{ marginTop: 12 }}>Incomes</h3>
           <ul>
@@ -527,29 +530,55 @@ import {
     if (page === "expenses") {
       return (
         <div>
-          <h3>Add Expense</h3>
-          <form onSubmit={handleSubmit}>
-            <input placeholder="Amount" type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required>
-              <option value="">Select category</option>
-              <option value="Food">🍔 Food</option>
-              <option value="Transportation">🚗 Transportation</option>
-              <option value="Rent">🏠 Rent</option>
-              <option value="Shopping">🛍️ Shopping</option>
-              <option value="Bills">💡 Bills</option>
-              <option value="Health">🩺 Health</option>
-              <option value="Entertainment">🎬 Entertainment</option>
-              <option value="Education">🎓 Education</option>
-              <option value="Other">➕ Other</option>
-            </select>
-            <input placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-            <input placeholder="Source" value={form.source} onChange={e => setForm({ ...form, source: e.target.value })} />
-            <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
-            <input placeholder="Notes" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
-            <button type="submit">Add Expense</button>
-          </form>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <h3 style={{ margin: 0 }}>Expenses</h3>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn" onClick={openBudgetModal}>Edit Budgets</button>
+              <button className="btn btn-primary" onClick={() => setExpenseModalOpen(true)}>＋ Add Expense</button>
+            </div>
+          </div>
 
-          <h3 style={{ marginTop: 12 }}>Expenses</h3>
+          {expenseModalOpen && (
+            <div className="modal-overlay" onClick={() => setExpenseModalOpen(false)}>
+              <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <div className="modal-title">Add Expense</div>
+                    <div className="modal-sub">Track where your money went</div>
+                  </div>
+                  <button className="btn btn-ghost" onClick={() => setExpenseModalOpen(false)}>✕</button>
+                </div>
+                <form onSubmit={handleSubmit} className="form-grid">
+                  <div className="input-with-prefix">
+                    <div className="currency-prefix">₱</div>
+                    <input className="modern-input" placeholder="Amount" type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
+                  </div>
+                  <select className="modern-input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required>
+                    <option value="">Select category</option>
+                    <option value="Food">🍔 Food</option>
+                    <option value="Transportation">🚗 Transportation</option>
+                    <option value="Rent">🏠 Rent</option>
+                    <option value="Shopping">🛍️ Shopping</option>
+                    <option value="Bills">💡 Bills</option>
+                    <option value="Health">🩺 Health</option>
+                    <option value="Entertainment">🎬 Entertainment</option>
+                    <option value="Education">🎓 Education</option>
+                    <option value="Other">➕ Other</option>
+                  </select>
+                  <input className="modern-input form-full" placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+                  <input className="modern-input" placeholder="Source" value={form.source} onChange={e => setForm({ ...form, source: e.target.value })} />
+                  <input className="modern-input" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+                  <input className="modern-input form-full" placeholder="Notes" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
+                  <div className="modal-footer form-full">
+                    <button type="button" className="btn" onClick={() => setExpenseModalOpen(false)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary">Add Expense</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          <h3 style={{ marginTop: 12 }}>Recent Expenses</h3>
           <ul>
             {expenses.map(expense => (
               <li key={expense.id}>₱{expense.amount} {expense.category ? `(${expense.category})` : `(${expense.source})`} {expense.description ? `— ${expense.description}` : ""} — {(expense.date ? new Date(expense.date).toLocaleDateString() : "N/A")} {expense.notes ? `— ${expense.notes}` : null} <button style={{ marginLeft: 10 }} onClick={() => deleteExpense(expense.id)}>❌</button></li>
@@ -633,5 +662,4 @@ import {
   );
 }
 
-export default App;
-
+  export default App;
