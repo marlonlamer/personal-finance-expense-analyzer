@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -15,13 +15,10 @@ import {
 
 export default function Dashboard(props) {
   const {
-    availableBalance,
     totalSavings,
     monthlyIncomeTotal,
     monthlyExpenseTotal,
     totalNetWorth,
-    totalIncomes,
-    totalExpenses,
     savingsRateColor,
     savingsRate,
     dateFilter,
@@ -37,13 +34,51 @@ export default function Dashboard(props) {
     COLORS
   } = props;
 
+  const [includeTotalSavings, setIncludeTotalSavings] = useState(() => {
+    try {
+      return localStorage.getItem("includeTotalSavings") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("includeTotalSavings", includeTotalSavings ? "true" : "false");
+    } catch {}
+  }, [includeTotalSavings]);
+
+  const computedAvailableBalance = Number(monthlyIncomeTotal || 0) - Number(monthlyExpenseTotal || 0) - (includeTotalSavings ? Number(totalSavings || 0) : 0);
+
+  function handleToggleIncludeSavings(checked) {
+    if (checked) {
+      const ok = window.confirm(
+        "Include Total Savings in available balance calculation? This will subtract your total savings from the available balance. Continue?"
+      );
+      if (ok) setIncludeTotalSavings(true);
+    } else {
+      setIncludeTotalSavings(false);
+    }
+  }
+
   return (
     <>
       <h1>💰 Expense Analyzer</h1>
       <div style={{ display: "flex", gap: 12, marginTop: 12, flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 160px", background: "#fff", padding: 12, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
           <div style={{ fontSize: 12, color: "#666" }}>Available Balance</div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>₱{availableBalance.toFixed(2)}</div>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>₱{computedAvailableBalance.toFixed(2)}</div>
+          <div style={{ marginTop: 8, fontSize: 12, color: "#555" }}>
+            <label style={{ cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={includeTotalSavings}
+                onChange={e => handleToggleIncludeSavings(e.target.checked)}
+                style={{ marginRight: 6 }}
+              />
+              Subtract Total Savings from Available Balance
+            </label>
+          </div>
         </div>
         <div style={{ flex: "1 1 160px", background: "#fff", padding: 12, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
           <div style={{ fontSize: 12, color: "#666" }}>Total Savings</div>
@@ -62,9 +97,7 @@ export default function Dashboard(props) {
           <div style={{ fontSize: 20, fontWeight: 700 }}>₱{totalNetWorth.toFixed(2)}</div>
         </div>
       </div>
-      <p>Total Income: ₱{totalIncomes.toFixed(2)}</p>
-      <p>Total Expenses: ₱{totalExpenses.toFixed(2)}</p>
-      <p>Savings: ₱{totalSavings.toFixed(2)}</p>
+
       <p style={{ color: savingsRateColor }}>Savings Rate: {savingsRate !== null ? `${savingsRate.toFixed(1)}%` : "N/A"}</p>
 
       <div style={{ marginTop: "0.5rem" }}>

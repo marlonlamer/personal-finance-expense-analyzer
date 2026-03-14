@@ -115,9 +115,9 @@ export default function Savings({ totalIncomes = 0, totalExpenses = 0, totalSavi
   return (
     <div>
       <h2>Savings</h2>
-      <p>Total Income: ₱{Number(totalIncomes).toFixed(2)}</p>
-      <p>Total Expenses: ₱{Number(totalExpenses).toFixed(2)}</p>
-      <p>Savings: ₱{Number(totalSavings).toFixed(2)}</p>
+      <p>Monthly Income: ₱{Number(totalIncomes).toFixed(2)}</p>
+      <p>Monthly Expenses: ₱{Number(totalExpenses).toFixed(2)}</p>
+      <p>Total Savings: ₱{Number(totalSavings).toFixed(2)}</p>
       <p style={{ color: savingsRateColor }}>Savings Rate: {savingsRate !== null ? `${Number(savingsRate).toFixed(1)}%` : "N/A"}</p>
 
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 12 }}>
