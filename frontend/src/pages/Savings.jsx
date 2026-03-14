@@ -9,6 +9,25 @@ export default function Savings({ totalIncomes = 0, totalExpenses = 0, totalSavi
   const [targetDate, setTargetDate] = useState("");
   const [notes, setNotes] = useState("");
 
+  const [goals, setGoals] = useState(() => {
+    try {
+      const raw = localStorage.getItem("savingGoals");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [editGoalId, setEditGoalId] = useState(null);
+  const [isAddMoneyOpen, setIsAddMoneyOpen] = useState(false);
+  const [addMoneyGoalId, setAddMoneyGoalId] = useState(null);
+  const [addMoneyAmount, setAddMoneyAmount] = useState("");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("savingGoals", JSON.stringify(goals));
+    } catch {}
+  }, [goals]);
+
   const monthlySuggestion = useMemo(() => {
     const t = parseFloat(targetAmount);
     const s = parseFloat(savedAmount) || 0;
@@ -29,22 +48,63 @@ export default function Savings({ totalIncomes = 0, totalExpenses = 0, totalSavi
     setStartDate("");
     setTargetDate("");
     setNotes("");
+    setEditGoalId(null);
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    const goal = {
+    const payload = {
+      id: editGoalId || Date.now().toString(),
       goalName: goalName.trim(),
       targetAmount: parseFloat(targetAmount) || 0,
       savedAmount: parseFloat(savedAmount) || 0,
       startDate: startDate || null,
       targetDate: targetDate || null,
-      monthlySuggestion: monthlySuggestion || null,
-      notes: notes.trim()
+      notes: notes.trim(),
+      createdAt: new Date().toISOString()
     };
-    console.log("Saving goal submitted:", goal);
+
+    if (editGoalId) {
+      setGoals(prev => prev.map(g => (g.id === editGoalId ? { ...g, ...payload } : g)));
+    } else {
+      setGoals(prev => [payload, ...prev]);
+    }
+
     setIsModalOpen(false);
     resetForm();
+  }
+
+  function openEdit(goal) {
+    setEditGoalId(goal.id);
+    setGoalName(goal.goalName || "");
+    setTargetAmount(String(goal.targetAmount || ""));
+    setSavedAmount(String(goal.savedAmount || ""));
+    setStartDate(goal.startDate || "");
+    setTargetDate(goal.targetDate || "");
+    setNotes(goal.notes || "");
+    setIsModalOpen(true);
+  }
+
+  function handleDelete(id) {
+    if (window.confirm("Delete this saving goal?")) {
+      setGoals(prev => prev.filter(g => g.id !== id));
+    }
+  }
+
+  function openAddMoney(goal) {
+    setAddMoneyGoalId(goal.id);
+    setAddMoneyAmount("");
+    setIsAddMoneyOpen(true);
+  }
+
+  function handleAddMoney(e) {
+    e.preventDefault();
+    const amt = parseFloat(addMoneyAmount) || 0;
+    if (!addMoneyGoalId || amt <= 0) return;
+    setGoals(prev => prev.map(g => g.id === addMoneyGoalId ? { ...g, savedAmount: (parseFloat(g.savedAmount || 0) + amt) } : g));
+    setIsAddMoneyOpen(false);
+    setAddMoneyGoalId(null);
+    setAddMoneyAmount("");
   }
 
   useEffect(() => {
@@ -60,12 +120,50 @@ export default function Savings({ totalIncomes = 0, totalExpenses = 0, totalSavi
       <p>Savings: ₱{Number(totalSavings).toFixed(2)}</p>
       <p style={{ color: savingsRateColor }}>Savings Rate: {savingsRate !== null ? `${Number(savingsRate).toFixed(1)}%` : "N/A"}</p>
 
-      <button onClick={() => setIsModalOpen(true)} style={{ marginTop: 12, padding: "8px 12px" }}>Add Saving Goal</button>
+      <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 12 }}>
+        <button onClick={() => setIsModalOpen(true)} style={{ padding: "8px 12px" }}>Add Saving Goal</button>
+      </div>
+
+      <div style={{ marginTop: 18 }}>
+        {goals.length === 0 && <p>No saving goals yet.</p>}
+        {goals.map(goal => {
+          const t = parseFloat(goal.targetAmount) || 0;
+          const s = parseFloat(goal.savedAmount) || 0;
+          const pct = t > 0 ? Math.min(100, (s / t) * 100) : 0;
+          return (
+            <div key={goal.id} style={{ border: "1px solid #eee", padding: 12, borderRadius: 6, marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <strong>{goal.goalName}</strong>
+                  <div style={{ fontSize: 12, color: "#666" }}>{goal.startDate ? `${goal.startDate} → ${goal.targetDate || "-"}` : (goal.targetDate || "")}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div>Target: ₱{Number(t).toFixed(2)}</div>
+                  <div>Saved: ₱{Number(s).toFixed(2)}</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 8 }}>
+                <div style={{ height: 10, background: "#f1f1f1", borderRadius: 6, overflow: "hidden" }}>
+                  <div style={{ width: `${pct}%`, height: "100%", background: "#4caf50" }} />
+                </div>
+                <div style={{ fontSize: 12, color: "#444", marginTop: 6 }}>{pct.toFixed(1)}% complete</div>
+              </div>
+
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 10 }}>
+                <button onClick={() => openAddMoney(goal)}>Add Money</button>
+                <button onClick={() => openEdit(goal)}>Edit</button>
+                <button onClick={() => handleDelete(goal.id)} style={{ color: "#c00" }}>Delete</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {isModalOpen && (
         <div role="dialog" aria-modal="true" style={overlayStyle} onClick={() => setIsModalOpen(false)}>
           <div style={modalStyle} onClick={e => e.stopPropagation()}>
-            <h3>Add Saving Goal</h3>
+            <h3>{editGoalId ? "Edit Saving Goal" : "Add Saving Goal"}</h3>
             <form onSubmit={handleSubmit}>
               <div style={fieldStyle}>
                 <label>Goal Name</label>
@@ -105,8 +203,26 @@ export default function Savings({ totalIncomes = 0, totalExpenses = 0, totalSavi
               </div>
 
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                <button type="button" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button type="button" onClick={() => { setIsModalOpen(false); setEditGoalId(null); }}>Cancel</button>
                 <button type="submit" style={{ padding: "6px 12px" }}>Save Goal</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isAddMoneyOpen && (
+        <div role="dialog" aria-modal="true" style={overlayStyle} onClick={() => setIsAddMoneyOpen(false)}>
+          <div style={modalStyle} onClick={e => e.stopPropagation()}>
+            <h3>Add Money</h3>
+            <form onSubmit={handleAddMoney}>
+              <div style={fieldStyle}>
+                <label>Amount</label>
+                <input type="number" step="0.01" value={addMoneyAmount} onChange={e => setAddMoneyAmount(e.target.value)} required />
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                <button type="button" onClick={() => setIsAddMoneyOpen(false)}>Cancel</button>
+                <button type="submit">Add</button>
               </div>
             </form>
           </div>
